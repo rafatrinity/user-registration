@@ -1,4 +1,12 @@
 version: "3.8"
+
+x-common-config: &common-config
+  networks:
+    - rabbitmq_go_net
+  secrets:
+    - db_username
+    - db_password
+
 services:
   app:
     build:
@@ -6,19 +14,18 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=${NODE_ENV:-development}
     env_file:
       - ./api/.env
     depends_on:
       - db
+    <<: *common-config
   db:
     image: mongo
     restart: always
     ports:
       - "27017:27017"
-    secrets:
-      - db_username
-      - db_password
+    <<: *common-config
   mongo-express:
     image: mongo-express
     restart: always
@@ -28,9 +35,7 @@ services:
       ME_CONFIG_MONGODB_ADMINUSERNAME: /run/secrets/db_username
       ME_CONFIG_MONGODB_ADMINPASSWORD: /run/secrets/db_password
       ME_CONFIG_MONGODB_URL: mongodb://root:root@db:27017/
-    secrets:
-      - db_username
-      - db_password
+    <<: *common-config
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: "rabbitmq"
@@ -44,8 +49,7 @@ services:
         rabbitmqctl set_user_tags root administrator;
         rabbitmqctl set_permissions -p / root ".*" ".*" ".*";
         exec rabbitmq-server '
-    networks:
-      - rabbitmq_go_net
+    <<: *common-config
 
 secrets:
   db_username:
