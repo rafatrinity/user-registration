@@ -1,15 +1,21 @@
-import { Module, DynamicModule } from '@nestjs/common';
-import { UserService } from './user.service';
+import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
+
 import { UserController } from './user.controller';
-import { ConnectOptions } from 'mongoose';
+import { User, UserSchema } from './user.model';
+import { UserService } from './user.service';
 
 @Module({})
 export class UserModule {
-  static forRoot(options: ConnectOptions): DynamicModule {
+  static forRoot() {
     return {
       module: UserModule,
+      imports: [
+        MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+      ],
       providers: [
         UserService,
+        { provide: 'UserModel', useValue: User },
       ],
       exports: [UserService],
       controllers: [UserController],

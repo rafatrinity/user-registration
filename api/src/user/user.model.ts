@@ -1,10 +1,18 @@
-import * as mongoose from 'mongoose';
-import { UserSchema } from './user.schema';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
 
-export interface User extends mongoose.Document {
+@Schema()
+export class User {
+  @Prop()
   name: string;
+
+  @Prop()
   email: string;
+
+  @Prop()
   password: string;
 }
 
-export const UserModel = mongoose.model<User>('User', UserSchema);
+export type UserDocument = User & Document;
+
+export const UserSchema = SchemaFactory.createForClass(User);
