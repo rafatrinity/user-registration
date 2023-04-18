@@ -10,16 +10,6 @@ export class UserModule {
       module: UserModule,
       providers: [
         UserService,
-        {
-          provide: 'DATABASE_CONNECTION',
-          useFactory: async () => {
-            const { connect } = await import('mongoose');
-            return await connect(String(options.uri), {
-              user: options.user,
-              pass: options.pass,
-            });
-          },
-        },
       ],
       exports: [UserService],
       controllers: [UserController],
