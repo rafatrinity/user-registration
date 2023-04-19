@@ -1,1 +1,0 @@
-mongodb://root:root@db:27017/
