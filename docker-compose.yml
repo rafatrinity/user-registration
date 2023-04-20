@@ -3,12 +3,8 @@ version: "3.8"
 x-common-config: &common-config
   networks:
     - rabbitmq_go_net
-  secrets:
-    - DB_USERNAME
-    - DB_PASSWORD
-    - DB_URI
-    - NODE_ENV
-    - DB_KEYFILE
+  env_file:
+    - ./.env
 
 services:
   app:
@@ -16,25 +12,17 @@ services:
       context: ./api
     ports:
       - "3000:3000"
-    env_file:
-      - ./api/.env
     depends_on:
       - db
-    configs:
-      - source: app_config
-        target: /app/config.env
     <<: *common-config
   db:
     image: mongo
     restart: always
     ports:
       - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
-    
     volumes:
       - ./mongod.conf:/etc/mongod.conf
+    command: './configs/init-mongo.sh'
     <<: *common-config
   mongo-express:
     image: mongo-express
@@ -42,9 +30,9 @@ services:
     ports:
       - 8081:8081
     environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: ${DB_USERNAME}
-      ME_CONFIG_MONGODB_ADMINPASSWORD: ${DB_PASSWORD}
-      ME_CONFIG_MONGODB_URL: mongodb://${DB_USERNAME}:${DB_PASSWORD}@db:27017/
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      ME_CONFIG_MONGODB_URL: ${DB_URI}
     <<: *common-config
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -52,26 +40,8 @@ services:
     ports:
       - 5672:5672
       - 15672:15672
-    command: >
-      sh -c '
-        rabbitmq-plugins enable rabbitmq_management;
-        rabbitmqctl add_user root root;
-        rabbitmqctl set_user_tags root administrator;
-        rabbitmqctl set_permissions -p / root ".*" ".*" ".*";
-        exec rabbitmq-server '
+    command: './configs/init-rabbit.sh'
     <<: *common-config
-
-secrets:
-  DB_USERNAME:
-    file: ./configs/keys/DB_USERNAME.txt
-  DB_PASSWORD:
-    file: ./configs/keys/DB_PASSWORD.txt
-  DB_URI:
-    file: ./configs/keys/DB_URI.txt
-  NODE_ENV:
-    file: ./configs/keys/NODE_ENV.txt
-  DB_KEYFILE:
-    file: ./configs/keys/DB_KEYFILE.txt
 
 configs:
   app_config:

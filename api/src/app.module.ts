@@ -16,7 +16,7 @@ import { envSchema } from './validators/env.schema';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('DB_URI'),
+        uri: `${configService.get<string>('DB_URI')}/${configService.get<string>('DB_NAME')}`,
       }),
       inject: [ConfigService],
     }),

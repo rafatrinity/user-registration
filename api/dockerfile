@@ -8,7 +8,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Instala dependências
-RUN npm install
+RUN npm install --engine-strict
 
 # Copia o código da aplicação
 COPY . .

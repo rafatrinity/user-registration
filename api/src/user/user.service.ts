@@ -25,39 +25,28 @@ export class UserService {
           id: user._id,
           name: user.name,
           email: user.email,
-          password: '',
         } as User),
     );
   }
 
   async findOne(id: string): Promise<User> {
     const user = await this.userModel.findById(id).lean().exec();
-    return user
-      ? ({
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          password: user.password,
-        } as User)
-      : null;
+    return user ? (user as User) : null;
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+    const existingUser = await this.userModel.findById(id).exec();
+    const password = updateUserDto.password
+      ? updateUserDto.password
+      : existingUser.password;
     const user = await this.userModel
-      .findByIdAndUpdate(id, updateUserDto, { new: true })
+      .findByIdAndUpdate(id, { ...updateUserDto, password }, { new: true })
       .lean()
       .exec();
-    return user
-      ? ({
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          password: updateUserDto.password,
-        } as User)
-      : null;
+    return user ? (user as User) : null;
   }
 
   async remove(id: string): Promise<void> {
-    const user = await this.userModel.findByIdAndRemove(id).lean().exec();
+    await this.userModel.findByIdAndRemove(id).lean().exec();
   }
 }

@@ -9,7 +9,7 @@ export class UpdateUserDto {
 
   @IsOptional()
   @IsEmail()
-  @ApiProperty()
+  @ApiProperty({type: String, format: 'email', example: 'RafaelTrindade@gmail.com'})
   email?: string;
 
   @IsOptional()
