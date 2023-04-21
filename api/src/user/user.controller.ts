@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -12,7 +12,7 @@ import {
 
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
-import { User } from './user.model';
+import { User } from './user.schema';
 import { UserService } from './user.service';
 
 @ApiTags('users')
@@ -68,7 +68,13 @@ export class UserController {
   @Get()
   @ApiOperation({ summary: 'Get all users' })
   @ApiResponse({ status: 200, description: 'An array of all users.' })
-  async findAll(): Promise<User[]> {
-    return this.userService.findAll();
+  @ApiParam({ name: 'page', description: 'Current page' })
+  @ApiParam({ name: 'limit', description: 'Page size' })
+  async findAll(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+  ): Promise<User[]> {
+    const users = await this.userService.findAll(page, limit);
+    return users;
   }
 }

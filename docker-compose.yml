@@ -17,13 +17,31 @@ services:
     <<: *common-config
   db:
     image: mongo
+
     restart: always
     ports:
       - "27017:27017"
     volumes:
       - ./mongod.conf:/etc/mongod.conf
-    command: './configs/init-mongo.sh'
+      - ./configs:/configs
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+
+    # command: 'mongosh
+    #   use admin
+    #   db.auth("${DB_USERNAME}", "${DB_PASSWORD}")
+    #   use ${DB_NAME}
+    #   db.createUser({
+    #     user: "${DB_USERNAME}",
+    #     pwd: "${DB_PASSWORD}",
+    #     roles: [{ role: "readWrite", db: "${DB_NAME}" }]
+    #   })
+    #   db.createCollection("User")'
+    # command: /configs/init-mongo.sh
     <<: *common-config
+
+
   mongo-express:
     image: mongo-express
     restart: always
@@ -37,10 +55,14 @@ services:
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: "rabbitmq"
+    volumes:
+      - ./configs:/configs
     ports:
       - 5672:5672
       - 15672:15672
-    command: './configs/init-rabbit.sh'
+    command: >
+      sh -c 'chmod 777 -R /configs &&
+      /configs/init-rabbit.sh'
     <<: *common-config
 
 configs:

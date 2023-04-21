@@ -3,7 +3,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { envSchema } from './validators/env.schema';
 
@@ -16,13 +15,12 @@ import { envSchema } from './validators/env.schema';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        uri: `${configService.get<string>('DB_URI')}/${configService.get<string>('DB_NAME')}`,
+        uri: `${configService.get<string>('DB_URI')}${configService.get<string>('DB_NAME')}`,
       }),
       inject: [ConfigService],
     }),
     UserModule.forRoot(),
   ],
   controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}

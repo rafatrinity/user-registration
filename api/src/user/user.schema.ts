@@ -1,15 +1,22 @@
-import { Document, model, Schema } from 'mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { IsEmail } from 'class-validator';
 
-export const UserSchema = new Schema({
-  name: String,
-  email: String,
-  password: String,
-});
+@Schema({
+  versionKey: false,
+})
+export class User {
+  @Prop({required: true})
+  first_name: string;
 
-export interface IUser extends Document {
-  name: string;
+  @Prop({required: true})
+  last_name: string;
+
+  @Prop({ required: true, unique: true })
+  @IsEmail()
   email: string;
-  password: string;
+
+  @Prop()
+  avatar?: string;
 }
 
-export const UserModel = model<IUser>('User', UserSchema);
+export const UserSchema = SchemaFactory.createForClass(User);

@@ -1,3 +1,18 @@
 #!/bin/bash
-source ./keys/trial.env
-mongo -u $DB_USERNAME -p $DB_PASSWORD --eval "db = db.getSiblingDB('$DB_NAME'); db.createUser({user: '$DB_USERNAME', pwd: '$DB_PASSWORD', roles: [{ role: 'dbAdmin', db: '$DB_NAME' }]});"
+source /configs/.env
+
+USERNAME=$DB_USERNAME
+PASSWORD=$DB_PASSWORD
+DB_NAME=$DB_NAME
+
+mongosh <<EOF
+    use admin
+    db.auth("$USERNAME", "$PASSWORD")
+    use $DB_NAME
+    db.createUser({
+        user: "$USERNAME",
+        pwd: "$PASSWORD",
+        roles: [{ role: "readWrite", db: "$DB_NAME" }]
+    })
+    db.createCollection("User")
+EOF
