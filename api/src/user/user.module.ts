@@ -9,7 +9,7 @@ import { UserService } from './user.service';
 
 @Module({})
 export class UserModule {
-  static forRoot() {
+  static forRoot(): unknown {
     return {
       module: UserModule,
       imports: [

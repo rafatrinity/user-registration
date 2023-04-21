@@ -38,7 +38,7 @@ services:
     #     roles: [{ role: "readWrite", db: "${DB_NAME}" }]
     #   })
     #   db.createCollection("User")'
-    # command: /configs/init-mongo.sh
+    command: /configs/init-mongo.sh
     <<: *common-config
 
 

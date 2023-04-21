@@ -4,12 +4,10 @@ import { ApiExcludeEndpoint } from '@nestjs/swagger';
 
 @Controller()
 export class AppController {
-  constructor() {}
-
   @ApiExcludeEndpoint()
   @Get()
   @Redirect('api-docs')
-  root() {
+  root(): unknown {
     return { url: 'api-docs' };
   }
 }
