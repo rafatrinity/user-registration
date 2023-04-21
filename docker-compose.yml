@@ -3,9 +3,8 @@ version: "3.8"
 x-common-config: &common-config
   networks:
     - rabbitmq_go_net
-  secrets:
-    - db_username
-    - db_password
+  env_file:
+    - ./.env
 
 services:
   app:
@@ -13,50 +12,66 @@ services:
       context: ./api
     ports:
       - "3000:3000"
-    environment:
-      - NODE_ENV=${NODE_ENV:-development}
-    env_file:
-      - ./api/.env
     depends_on:
       - db
     <<: *common-config
   db:
     image: mongo
+
     restart: always
     ports:
       - "27017:27017"
+    volumes:
+      - ./mongod.conf:/etc/mongod.conf
+      - ./configs:/configs
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+
+    # command: 'mongosh
+    #   use admin
+    #   db.auth("${DB_USERNAME}", "${DB_PASSWORD}")
+    #   use ${DB_NAME}
+    #   db.createUser({
+    #     user: "${DB_USERNAME}",
+    #     pwd: "${DB_PASSWORD}",
+    #     roles: [{ role: "readWrite", db: "${DB_NAME}" }]
+    #   })
+    #   db.createCollection("User")'
+    # command: /configs/init-mongo.sh
     <<: *common-config
+
+
   mongo-express:
     image: mongo-express
     restart: always
     ports:
       - 8081:8081
     environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: /run/secrets/db_username
-      ME_CONFIG_MONGODB_ADMINPASSWORD: /run/secrets/db_password
-      ME_CONFIG_MONGODB_URL: mongodb://root:root@db:27017/
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      ME_CONFIG_MONGODB_URL: ${DB_URI}
     <<: *common-config
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: "rabbitmq"
+    volumes:
+      - ./configs:/configs
     ports:
       - 5672:5672
       - 15672:15672
     command: >
-      sh -c '
-        rabbitmq-plugins enable rabbitmq_management;
-        rabbitmqctl add_user root root;
-        rabbitmqctl set_user_tags root administrator;
-        rabbitmqctl set_permissions -p / root ".*" ".*" ".*";
-        exec rabbitmq-server '
+      sh -c 'chmod 777 -R /configs &&
+      /configs/init-rabbit.sh'
     <<: *common-config
 
-secrets:
-  db_username:
-    file: ./keys/db_username.txt
-  db_password:
-    file: ./keys/db_password.txt
+configs:
+  app_config:
+    file: ./configs/keys/config.env
+  mongo_config:
+    file: ./configs/mongod.conf
 
 networks:
   rabbitmq_go_net:
     driver: bridge
+    name: rabbitmq_go_net
